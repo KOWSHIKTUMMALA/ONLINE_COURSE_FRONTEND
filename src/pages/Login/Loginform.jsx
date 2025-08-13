@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import "./Loginform.css";
 import logimage from "../../assets/3958929.jpg";
 
+// Use environment variable or fallback to local dev server
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -42,15 +45,17 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      // Using proxy: no need for full backend URL
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const contentType = res.headers.get("content-type");
-      const data = contentType && contentType.includes("application/json") ? await res.json() : null;
+      const data =
+        contentType && contentType.includes("application/json")
+          ? await res.json()
+          : null;
 
       if (!res.ok) {
         if (res.status === 401) throw new Error("Invalid email or password");
@@ -67,7 +72,10 @@ const LoginForm = () => {
 
   return (
     <div className="login-container">
-      <div className="image-container" style={{ backgroundImage: `url(${logimage})` }}></div>
+      <div
+        className="image-container"
+        style={{ backgroundImage: `url(${logimage})` }}
+      ></div>
 
       <div className="login-page">
         <header>LearnCourseOnline</header>
@@ -115,7 +123,12 @@ const LoginForm = () => {
         </form>
 
         <div className="auth-links">
-          <p className="switch" onClick={() => navigate("/Sign")} tabIndex={0} role="button">
+          <p
+            className="switch"
+            onClick={() => navigate("/Sign")}
+            tabIndex={0}
+            role="button"
+          >
             Don't have an account? Signup
           </p>
         </div>

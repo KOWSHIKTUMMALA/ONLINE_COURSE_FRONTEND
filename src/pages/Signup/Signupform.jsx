@@ -12,6 +12,8 @@ const Signupform = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // from .env
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -51,7 +53,7 @@ const Signupform = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -66,7 +68,7 @@ const Signupform = () => {
       }
 
       setSuccess(true);
-      setTimeout(() => navigate("/"), 2000); // Redirect to login page
+      setTimeout(() => navigate("/"), 2000); // redirect to login
     } catch (err) {
       setErrorMessage(err.message || "Failed to signup");
     } finally {

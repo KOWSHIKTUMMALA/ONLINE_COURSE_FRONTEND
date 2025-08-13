@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 const Account = () => {
   const [user, setUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [oldPassword, setOldPassword] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // from .env
 
   useEffect(() => {
     const storedUser = JSON.parse(sessionStorage.getItem("userInfo"));
@@ -14,14 +17,21 @@ const Account = () => {
   }, [navigate]);
 
   const handlePasswordChange = async () => {
-    if (!oldPassword || !newPassword) return setMessage("All password fields are required");
+    if (!oldPassword || !newPassword) {
+      setMessage("All password fields are required");
+      return;
+    }
 
     try {
-      const res = await fetch("/api/auth/update-password", {
+      const token = sessionStorage.getItem("authToken"); // get token
+
+      const res = await fetch(`${BACKEND_URL}/api/auth/update-password`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // send token
+        },
         body: JSON.stringify({
-          userId: user.id,
           oldPassword,
           newPassword,
         }),
@@ -47,12 +57,12 @@ const Account = () => {
   if (!user) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h2 class="h1">Account Details</h2>
+    <div className="account-container">
+      <h2 className="h1">Account Details</h2>
       <p><strong>Name:</strong> {user.username}</p>
       <p><strong>Email:</strong> {user.email}</p>
 
-      <h3 class="h3">Change Password</h3>
+      <h3 className="h3">Change Password</h3>
       <input
         type="password"
         placeholder="Old Password"
@@ -68,9 +78,9 @@ const Account = () => {
       <button onClick={handlePasswordChange}>Update Password</button>
 
       <h3>Logout</h3>
-      <button class="log"onClick={handleLogout}>Logout</button>
+      <button className="log" onClick={handleLogout}>Logout</button>
 
-      {message && <p>{message}</p>}
+      {message && <p className={message.includes("successfully") ? "message" : "error"}>{message}</p>}
     </div>
   );
 };
