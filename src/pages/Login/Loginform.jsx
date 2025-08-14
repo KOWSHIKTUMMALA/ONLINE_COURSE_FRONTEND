@@ -4,7 +4,7 @@ import "./Loginform.css";
 import logimage from "../../assets/3958929.jpg";
 
 // Use environment variable or fallback to local dev server
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
