@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import "./Signupform.css";
 import img from "../../assets/3958929.jpg";
 
-const Signupform = () => {
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+
+const SignupForm = () => {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -12,11 +14,9 @@ const Signupform = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // from .env
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (name === "password") checkPasswordStrength(value);
   };
 
@@ -60,7 +60,9 @@ const Signupform = () => {
       });
 
       const contentType = res.headers.get("content-type");
-      const data = contentType && contentType.includes("application/json") ? await res.json() : null;
+      const data = contentType?.includes("application/json") ? await res.json() : null;
+
+      console.log("Signup response:", data);
 
       if (!res.ok) {
         if (res.status === 409) throw new Error("Email already exists");
@@ -68,7 +70,7 @@ const Signupform = () => {
       }
 
       setSuccess(true);
-      setTimeout(() => navigate("/"), 2000); // redirect to login
+      setTimeout(() => navigate("/"), 2000);
     } catch (err) {
       setErrorMessage(err.message || "Failed to signup");
     } finally {
@@ -79,81 +81,65 @@ const Signupform = () => {
   return (
     <div className="signup-wrapper">
       <div className="image-container" style={{ backgroundImage: `url(${img})` }}></div>
-
       <div className="signup-container">
         <header>LearnCourseOnline</header>
 
-        <div className="form-container">
-          {errorMessage && <p className="error-message">{errorMessage}</p>}
-          {success && <p className="success-message">Signup successful! Redirecting to login...</p>}
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+        {success && <p className="success-message">Signup successful! Redirecting...</p>}
 
-          <form onSubmit={handleSubmit}>
-            <fieldset disabled={loading || success}>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  autoComplete="username"
-                />
-                {errors.username && <span className="field-error">{errors.username}</span>}
-              </div>
+        <form onSubmit={handleSubmit}>
+          <fieldset disabled={loading || success}>
+            <div className="form-group">
+              <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleChange}
+              />
+              {errors.username && <span className="field-error">{errors.username}</span>}
+            </div>
 
-              <div className="form-group">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  autoComplete="email"
-                />
-                {errors.email && <span className="field-error">{errors.email}</span>}
-              </div>
+            <div className="form-group">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {errors.email && <span className="field-error">{errors.email}</span>}
+            </div>
 
-              <div className="form-group">
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                />
-                {errors.password && <span className="field-error">{errors.password}</span>}
+            <div className="form-group">
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+              {errors.password && <span className="field-error">{errors.password}</span>}
 
-                {formData.password && (
-                  <div className="password-strength">
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`strength-bar ${passwordStrength > i ? "active" : ""}`}
-                        style={{ marginRight: "3px" }}
-                      ></div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {formData.password && (
+                <div className="password-strength">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`strength-bar ${passwordStrength > i ? "active" : ""}`}></div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-              <button type="submit">{loading ? "Signing up..." : "Sign Up"}</button>
-            </fieldset>
-          </form>
+            <button type="submit">{loading ? "Signing up..." : "Sign Up"}</button>
+          </fieldset>
+        </form>
 
-          <p
-            className="switch"
-            onClick={() => navigate("/")}
-            tabIndex={0}
-            role="button"
-            onKeyDown={(e) => { if (e.key === "Enter") navigate("/"); }}
-          >
-            Already have an account? Login
-          </p>
-        </div>
+        <p className="switch" onClick={() => navigate("/")} role="button" tabIndex={0}>
+          Already have an account? Login
+        </p>
       </div>
     </div>
   );
 };
 
-export default Signupform;
+export default SignupForm;

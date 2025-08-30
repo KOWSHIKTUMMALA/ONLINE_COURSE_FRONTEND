@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./Loginform.css";
 import logimage from "../../assets/3958929.jpg";
 
-// Use environment variable or fallback to local dev server
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
 const LoginForm = () => {
@@ -16,15 +15,13 @@ const LoginForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email.trim()) newErrors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      newErrors.email = "Invalid email format";
-
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format";
     if (!formData.password) newErrors.password = "Password is required";
 
     setErrors(newErrors);
@@ -32,9 +29,14 @@ const LoginForm = () => {
   };
 
   const handleSuccessfulLogin = (data) => {
-    sessionStorage.setItem("authToken", data.token);
-    sessionStorage.setItem("userInfo", JSON.stringify(data.user));
-    navigate("/Home");
+    console.log("Login response:", data);
+    if (data?.user && data?.token) {
+      sessionStorage.setItem("authToken", data.token);
+      sessionStorage.setItem("userInfo", JSON.stringify(data.user));
+      navigate("/Home");
+    } else {
+      setErrorMessage("Invalid response from server");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -52,10 +54,7 @@ const LoginForm = () => {
       });
 
       const contentType = res.headers.get("content-type");
-      const data =
-        contentType && contentType.includes("application/json")
-          ? await res.json()
-          : null;
+      const data = contentType?.includes("application/json") ? await res.json() : null;
 
       if (!res.ok) {
         if (res.status === 401) throw new Error("Invalid email or password");
@@ -72,11 +71,7 @@ const LoginForm = () => {
 
   return (
     <div className="login-container">
-      <div
-        className="image-container"
-        style={{ backgroundImage: `url(${logimage})` }}
-      ></div>
-
+      <div className="image-container" style={{ backgroundImage: `url(${logimage})` }}></div>
       <div className="login-page">
         <header>LearnCourseOnline</header>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -90,7 +85,6 @@ const LoginForm = () => {
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
-                autoComplete="username"
               />
               {errors.email && <span className="field-error">{errors.email}</span>}
             </div>
@@ -102,16 +96,12 @@ const LoginForm = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
-                autoComplete="current-password"
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
                 className="toggle-password-text"
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setShowPassword(!showPassword);
-                }}
               >
                 {showPassword ? "Hide" : "Show"}
               </span>
@@ -123,12 +113,7 @@ const LoginForm = () => {
         </form>
 
         <div className="auth-links">
-          <p
-            className="switch"
-            onClick={() => navigate("/Sign")}
-            tabIndex={0}
-            role="button"
-          >
+          <p className="switch" onClick={() => navigate("/Sign")} role="button" tabIndex={0}>
             Don't have an account? Signup
           </p>
         </div>
