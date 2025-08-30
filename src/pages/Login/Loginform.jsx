@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Loginform.css";
 import logimage from "../../assets/3958929.jpg";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -28,17 +28,6 @@ const LoginForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSuccessfulLogin = (data) => {
-    console.log("Login response:", data);
-    if (data?.user && data?.token) {
-      sessionStorage.setItem("authToken", data.token);
-      sessionStorage.setItem("userInfo", JSON.stringify(data.user));
-      navigate("/Home");
-    } else {
-      setErrorMessage("Invalid response from server");
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -53,17 +42,18 @@ const LoginForm = () => {
         body: JSON.stringify(formData),
       });
 
-      const contentType = res.headers.get("content-type");
-      const data = contentType?.includes("application/json") ? await res.json() : null;
-
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Invalid email or password");
-        throw new Error(data?.message || "Login failed");
+        const data = await res.json();
+        throw new Error(data.message || "Failed to login");
       }
 
-      handleSuccessfulLogin(data);
+      const data = await res.json();
+      sessionStorage.setItem("authToken", data.token);
+      sessionStorage.setItem("userInfo", JSON.stringify(data.user));
+      navigate("/Home");
     } catch (err) {
-      setErrorMessage(err.message || "Failed to login");
+      console.error(err);
+      setErrorMessage(err.message || "Failed to fetch");
     } finally {
       setLoading(false);
     }
@@ -78,45 +68,14 @@ const LoginForm = () => {
 
         <form onSubmit={handleSubmit}>
           <fieldset disabled={loading}>
-            <div className="form-group">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-              {errors.email && <span className="field-error">{errors.email}</span>}
-            </div>
-
-            <div className="form-group">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              <span
-                onClick={() => setShowPassword(!showPassword)}
-                className="toggle-password-text"
-                role="button"
-                tabIndex={0}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </span>
-              {errors.password && <span className="field-error">{errors.password}</span>}
-            </div>
-
+            <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} />
+            <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={formData.password} onChange={handleChange} />
+            <span onClick={() => setShowPassword(!showPassword)} className="toggle-password-text">{showPassword ? "Hide" : "Show"}</span>
             <button type="submit">{loading ? "Logging in..." : "Login"}</button>
           </fieldset>
         </form>
 
-        <div className="auth-links">
-          <p className="switch" onClick={() => navigate("/Sign")} role="button" tabIndex={0}>
-            Don't have an account? Signup
-          </p>
-        </div>
+        <p className="switch" onClick={() => navigate("/Sign")}>Don't have an account? Signup</p>
       </div>
     </div>
   );
